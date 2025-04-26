@@ -1,8 +1,8 @@
 package com.example;
 
 public class Flashcard {
-    private final String question;
-    private final String answer;
+    private String question;
+    private String answer;
 
     public Flashcard(String question, String answer) {
         this.question = question;
@@ -15,5 +15,13 @@ public class Flashcard {
 
     public String getAnswer() {
         return answer;
+    }
+
+    public void setQuestion(String question) {
+        this.question = question;
+    }
+
+    public void setAnswer(String answer) {
+        this.answer = answer;
     }
 }

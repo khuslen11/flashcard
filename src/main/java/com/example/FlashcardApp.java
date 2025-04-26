@@ -18,6 +18,7 @@ public class FlashcardApp {
         }
 
         String order = "random";
+        boolean invertCards = false;
 
         for (int i = 1; i < args.length; i++) {
             if (args[i].equals("--order")) {
@@ -28,6 +29,8 @@ public class FlashcardApp {
                     System.out.println("Error: --order requires a value.");
                     return;
                 }
+            } else if (args[i].equals("--invertCards")) { // <-- NEW
+                invertCards = true;
             } else if (args[i].equals("--help")) {
                 printHelp();
                 return;
@@ -36,10 +39,17 @@ public class FlashcardApp {
 
         System.out.println("Flashcard App starting...");
 
-        String cardsFile = args[0]; // first argument is the filename
+        String cardsFile = args[0];
         List<Flashcard> flashcards = readFlashcardsFromFile(cardsFile);
         System.out.println("Loaded " + flashcards.size() + " flashcards.");
 
+        if (invertCards) { // <-- NEW
+            for (Flashcard card : flashcards) {
+                String temp = card.getQuestion();
+                card.setQuestion(card.getAnswer());
+                card.setAnswer(temp);
+            }
+        }
         if (order.equals("random")) {
             Collections.shuffle(flashcards);
         }
