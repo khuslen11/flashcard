@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class FlashcardApp {
 
@@ -27,6 +28,8 @@ public class FlashcardApp {
         String cardsFile = args[0]; // first argument is the filename
         List<Flashcard> flashcards = readFlashcardsFromFile(cardsFile);
         System.out.println("Loaded " + flashcards.size() + " flashcards.");
+
+        runQuiz(flashcards);
     }
 
     private static List<Flashcard> readFlashcardsFromFile(String filename) {
@@ -46,6 +49,28 @@ public class FlashcardApp {
         }
         return flashcards;
     }
+
+    private static void runQuiz(List<Flashcard> flashcards) {
+    Scanner scanner = new Scanner(System.in);
+    int correctAnswers = 0;
+
+    for (Flashcard card : flashcards) {
+        System.out.println("Question: " + card.getQuestion());
+        System.out.print("Your answer: ");
+        String userAnswer = scanner.nextLine();
+
+        if (userAnswer.trim().equalsIgnoreCase(card.getAnswer().trim())) {
+            System.out.println("✅ Correct!");
+            correctAnswers++;
+        } else {
+            System.out.println("❌ Wrong! Correct answer: " + card.getAnswer());
+        }
+        System.out.println();
+    }
+
+    System.out.println("Quiz finished!");
+    System.out.println("Correct answers: " + correctAnswers + " out of " + flashcards.size());
+}
 
     private static void printHelp() {
         System.out.println("Usage: flashcard <cards-file> [options]");
