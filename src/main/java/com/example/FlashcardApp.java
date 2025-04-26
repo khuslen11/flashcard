@@ -110,59 +110,58 @@ public class FlashcardApp {
 
     private static void runQuiz(List<Flashcard> flashcards, int repetitions, String order) {
         Scanner scanner = new Scanner(System.in);
-
-        RecentMistakesFirstSorter mistakesSorter = new RecentMistakesFirstSorter();
-        WorstFirstSorter worstSorter = new WorstFirstSorter();
+        RecentMistakesFirstSorter sorter = new RecentMistakesFirstSorter();
+        AchievementManager achievementManager = new AchievementManager(); // 🆕
         boolean useRecentMistakes = order.equals("recent-mistakes-first");
-        boolean useWorstFirst = order.equals("worst-first");
-
+    
         boolean allCorrect;
         do {
             allCorrect = true;
-            List<Flashcard> quizCards = new ArrayList<>(flashcards);
-
+            achievementManager.resetRound(); // 🆕
+    
+            List<Flashcard> quizCards;
             if (useRecentMistakes) {
-                quizCards = mistakesSorter.organize(flashcards);
-            } else if (useWorstFirst) {
-                quizCards = worstSorter.organize(flashcards);
-            } else if (order.equals("random")) {
-                Collections.shuffle(quizCards);
+                quizCards = sorter.organize(flashcards);
+            } else {
+                quizCards = new ArrayList<>(flashcards);
+                if (order.equals("random")) {
+                    Collections.shuffle(quizCards);
+                }
             }
-
+    
             for (Flashcard card : quizCards) {
                 int correctCount = 0;
-                int attemptCount = 0;
-
                 while (correctCount < repetitions) {
                     System.out.println("Question: " + card.getQuestion());
                     System.out.print("Your answer: ");
                     String userAnswer = scanner.nextLine();
-
-                    attemptCount++;
-
+    
                     if (userAnswer.trim().equalsIgnoreCase(card.getAnswer().trim())) {
                         correctCount++;
                         System.out.println("Correct! (" + correctCount + "/" + repetitions + ")");
-                        mistakesSorter.clearMistakes();
+                        sorter.clearMistakes();
+                        achievementManager.recordAttempt(card, true); // 🆕
                     } else {
                         System.out.println("Wrong! Correct answer: " + card.getAnswer());
-                        mistakesSorter.addMistake(card);
-                        worstSorter.addMistake(card);
-                        correctCount = 0; // Reset on wrong if needed
+                        sorter.addMistake(card);
+                        correctCount = 0;
                         allCorrect = false;
+                        achievementManager.recordAttempt(card, false); // 🆕
                     }
                     System.out.println();
                 }
             }
-
+    
             if (useRecentMistakes && !allCorrect) {
                 System.out.println("Repeating mistakes first...");
             }
-
+    
         } while (useRecentMistakes && !allCorrect);
-
+    
+        achievementManager.showAchievements(); // 🆕
         System.out.println("Quiz finished!");
     }
+    
 
     private static void printHelp() {
         System.out.println("Usage: flashcard <cards-file> [options]");
