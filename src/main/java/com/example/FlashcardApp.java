@@ -41,7 +41,7 @@ public class FlashcardApp {
                     if (i + 1 < args.length) {
                         order = args[++i];
                         if (!order.equals("random") && !order.equals("worst-first") && !order.equals("recent-mistakes-first")) {
-                            System.out.println("Error: Invalid order type: " + order);
+                            System.out.println("Error: Invalid order type.");
                             return;
                         }
                     } else {
@@ -86,7 +86,9 @@ public class FlashcardApp {
                 card.setAnswer(temp);
             }
         }
-
+        if (order.equals("random")) {
+            Collections.shuffle(flashcards);
+        }
         runQuiz(flashcards, repetitions, order);
     }
 
@@ -110,15 +112,18 @@ public class FlashcardApp {
 
     private static void runQuiz(List<Flashcard> flashcards, int repetitions, String order) {
         Scanner scanner = new Scanner(System.in);
+
         RecentMistakesFirstSorter sorter = new RecentMistakesFirstSorter();
-        AchievementManager achievementManager = new AchievementManager(); // 🆕
         boolean useRecentMistakes = order.equals("recent-mistakes-first");
-    
+
+        // Amjiltiin tracking
+        Map<Flashcard, Integer> correctCounts = new HashMap<>();
+        Map<Flashcard, Integer> totalAttempts = new HashMap<>();
+
         boolean allCorrect;
         do {
             allCorrect = true;
-            achievementManager.resetRound(); // 🆕
-    
+
             List<Flashcard> quizCards;
             if (useRecentMistakes) {
                 quizCards = sorter.organize(flashcards);
@@ -128,40 +133,63 @@ public class FlashcardApp {
                     Collections.shuffle(quizCards);
                 }
             }
-    
+
             for (Flashcard card : quizCards) {
                 int correctCount = 0;
                 while (correctCount < repetitions) {
                     System.out.println("Question: " + card.getQuestion());
                     System.out.print("Your answer: ");
                     String userAnswer = scanner.nextLine();
-    
+
+                    totalAttempts.put(card, totalAttempts.getOrDefault(card, 0) + 1);
+
                     if (userAnswer.trim().equalsIgnoreCase(card.getAnswer().trim())) {
                         correctCount++;
+                        correctCounts.put(card, correctCounts.getOrDefault(card, 0) + 1);
                         System.out.println("Correct! (" + correctCount + "/" + repetitions + ")");
                         sorter.clearMistakes();
-                        achievementManager.recordAttempt(card, true); // 🆕
                     } else {
                         System.out.println("Wrong! Correct answer: " + card.getAnswer());
                         sorter.addMistake(card);
                         correctCount = 0;
                         allCorrect = false;
-                        achievementManager.recordAttempt(card, false); // 🆕
                     }
                     System.out.println();
                 }
             }
-    
+
             if (useRecentMistakes && !allCorrect) {
                 System.out.println("Repeating mistakes first...");
             }
-    
+
         } while (useRecentMistakes && !allCorrect);
-    
-        achievementManager.showAchievements(); // 🆕
+
         System.out.println("Quiz finished!");
+
+        // Амжилтуудыг шалгах
+        checkAchievements(correctCounts, totalAttempts);
     }
-    
+
+    private static void checkAchievements(Map<Flashcard, Integer> correctCounts, Map<Flashcard, Integer> totalAttempts) {
+        boolean correctAchievement = correctCounts.values().stream().allMatch(count -> count > 0);
+        boolean repeatAchievement = totalAttempts.values().stream().anyMatch(count -> count > 5);
+        boolean confidentAchievement = correctCounts.values().stream().anyMatch(count -> count >= 3);
+
+        System.out.println();
+        System.out.println("Achievements:");
+        if (correctAchievement) {
+            System.out.println("- CORRECT: All flashcards were answered correctly!");
+        }
+        if (repeatAchievement) {
+            System.out.println("- REPEAT: Answered some flashcards more than 5 times!");
+        }
+        if (confidentAchievement) {
+            System.out.println("- CONFIDENT: Answered some flashcards correctly at least 3 times!");
+        }
+        if (!correctAchievement && !repeatAchievement && !confidentAchievement) {
+            System.out.println("- No achievements unlocked. Keep practicing!");
+        }
+    }
 
     private static void printHelp() {
         System.out.println("Usage: flashcard <cards-file> [options]");
