@@ -17,43 +17,70 @@ public class FlashcardApp {
             return;
         }
 
-        String order = "random";
-        boolean invertCards = false;
-        int repetitions = 1;
-
-        for (int i = 1; i < args.length; i++) {
-            if (args[i].equals("--order")) {
-                if (i + 1 < args.length) {
-                    order = args[i + 1];
-                    i++;
-                } else {
-                    System.out.println("Error: --order requires a value.");
-                    return;
-                }
-            } else if (args[i].equals("--repetitions")) {
-                if (i + 1 < args.length) {
-                    try {
-                        repetitions = Integer.parseInt(args[i + 1]);
-                        i++;
-                    } catch (NumberFormatException e) {
-                        System.out.println("Error: --repetitions must be a number.");
-                        return;
-                    }
-                } else {
-                    System.out.println("Error: --repetitions requires a value.");
-                    return;
-                }
-            } else if (args[i].equals("--help")) {
+        for (String arg : args) {
+            if (arg.equals("--help")) {
                 printHelp();
                 return;
             }
         }
 
+        String cardsFile = null;
+        String order = "random";
+        boolean invertCards = false;
+        int repetitions = 1;
+
+        int i = 0;
+        if (!args[0].startsWith("--")) {
+            cardsFile = args[0];
+            i = 1;
+        } else {
+            System.out.println("Error: No cards file provided.");
+            return;
+        }
+
+        for (; i < args.length; i++) {
+            switch (args[i]) {
+                case "--order":
+                    if (i + 1 < args.length) {
+                        order = args[++i];
+                        if (!order.equals("random") && !order.equals("worst-first") && !order.equals("recent-mistakes-first")) {
+                            System.out.println("Error: Invalid order type.");
+                            return;
+                        }
+                    } else {
+                        System.out.println("Error: --order requires a value.");
+                        return;
+                    }
+                    break;
+                case "--repetitions":
+                    if (i + 1 < args.length) {
+                        try {
+                            repetitions = Integer.parseInt(args[++i]);
+                        } catch (NumberFormatException e) {
+                            System.out.println("Error: --repetitions must be a number.");
+                            return;
+                        }
+                    } else {
+                        System.out.println("Error: --repetitions requires a value.");
+                        return;
+                    }
+                    break;
+                case "--invertCards":
+                    invertCards = true;
+                    break;
+                default:
+                    System.out.println("Error: Unknown option " + args[i]);
+                    return;
+            }
+        }
+
         System.out.println("Flashcard App starting...");
 
-        String cardsFile = args[0];
         List<Flashcard> flashcards = readFlashcardsFromFile(cardsFile);
-        System.out.println("Loaded " + flashcards.size() + " flashcards.");
+        if (flashcards.isEmpty()) {
+            System.out.println("No flashcards loaded. Exiting.");
+            return;
+        }
 
         if (invertCards) {
             for (Flashcard card : flashcards) {
@@ -88,7 +115,8 @@ public class FlashcardApp {
 
     private static void runQuiz(List<Flashcard> flashcards, int repetitions) {
         Scanner scanner = new Scanner(System.in);
-        int correctAnswers = 0;
+        int totalCorrectAnswers = 0;
+        int totalQuestions = flashcards.size();
 
         for (Flashcard card : flashcards) {
             int correctCount = 0;
@@ -106,10 +134,10 @@ public class FlashcardApp {
                 }
                 System.out.println();
             }
+            totalCorrectAnswers++;
         }
-
         System.out.println("Quiz finished!");
-        System.out.println("Correct answers: " + correctAnswers + " out of " + flashcards.size());
+        System.out.println("Total correct answers: " + totalCorrectAnswers + " out of " + totalQuestions);
     }
 
     private static void printHelp() {
