@@ -1,5 +1,11 @@
 package com.example;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class FlashcardApp {
 
     public static void main(String[] args) {
@@ -17,6 +23,28 @@ public class FlashcardApp {
         }
 
         System.out.println("Flashcard App starting...");
+
+        String cardsFile = args[0]; // first argument is the filename
+        List<Flashcard> flashcards = readFlashcardsFromFile(cardsFile);
+        System.out.println("Loaded " + flashcards.size() + " flashcards.");
+    }
+
+    private static List<Flashcard> readFlashcardsFromFile(String filename) {
+        List<Flashcard> flashcards = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String question;
+            while ((question = reader.readLine()) != null) {
+                String answer = reader.readLine();
+                if (answer == null) {
+                    System.out.println("Warning: Question without an answer: " + question);
+                    break;
+                }
+                flashcards.add(new Flashcard(question, answer));
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
+        return flashcards;
     }
 
     private static void printHelp() {
