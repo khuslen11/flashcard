@@ -19,6 +19,7 @@ public class FlashcardApp {
 
         String order = "random";
         boolean invertCards = false;
+        int repetitions = 1;
 
         for (int i = 1; i < args.length; i++) {
             if (args[i].equals("--order")) {
@@ -29,8 +30,19 @@ public class FlashcardApp {
                     System.out.println("Error: --order requires a value.");
                     return;
                 }
-            } else if (args[i].equals("--invertCards")) { // <-- NEW
-                invertCards = true;
+            } else if (args[i].equals("--repetitions")) {
+                if (i + 1 < args.length) {
+                    try {
+                        repetitions = Integer.parseInt(args[i + 1]);
+                        i++;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error: --repetitions must be a number.");
+                        return;
+                    }
+                } else {
+                    System.out.println("Error: --repetitions requires a value.");
+                    return;
+                }
             } else if (args[i].equals("--help")) {
                 printHelp();
                 return;
@@ -43,7 +55,7 @@ public class FlashcardApp {
         List<Flashcard> flashcards = readFlashcardsFromFile(cardsFile);
         System.out.println("Loaded " + flashcards.size() + " flashcards.");
 
-        if (invertCards) { // <-- NEW
+        if (invertCards) {
             for (Flashcard card : flashcards) {
                 String temp = card.getQuestion();
                 card.setQuestion(card.getAnswer());
@@ -53,7 +65,7 @@ public class FlashcardApp {
         if (order.equals("random")) {
             Collections.shuffle(flashcards);
         }
-        runQuiz(flashcards);
+        runQuiz(flashcards, repetitions);
     }
 
     private static List<Flashcard> readFlashcardsFromFile(String filename) {
@@ -74,22 +86,26 @@ public class FlashcardApp {
         return flashcards;
     }
 
-    private static void runQuiz(List<Flashcard> flashcards) {
+    private static void runQuiz(List<Flashcard> flashcards, int repetitions) {
         Scanner scanner = new Scanner(System.in);
         int correctAnswers = 0;
 
         for (Flashcard card : flashcards) {
-            System.out.println("Question: " + card.getQuestion());
-            System.out.print("Your answer: ");
-            String userAnswer = scanner.nextLine();
+            int correctCount = 0;
+            while (correctCount < repetitions) {
+                System.out.println("Question: " + card.getQuestion());
+                System.out.print("Your answer: ");
+                String userAnswer = scanner.nextLine();
 
-            if (userAnswer.trim().equalsIgnoreCase(card.getAnswer().trim())) {
-                System.out.println("Correct!");
-                correctAnswers++;
-            } else {
-                System.out.println("Wrong! Correct answer: " + card.getAnswer());
+                if (userAnswer.trim().equalsIgnoreCase(card.getAnswer().trim())) {
+                    correctCount++;
+                    System.out.println("Correct! (" + correctCount + "/" + repetitions + ")");
+                } else {
+                    System.out.println("Wrong! Correct answer: " + card.getAnswer());
+                    correctCount = 0;
+                }
+                System.out.println();
             }
-            System.out.println();
         }
 
         System.out.println("Quiz finished!");
