@@ -1,5 +1,11 @@
 package com.example;
 
-public class RecentMistakesFirstSorter {
-    
+import java.util.List;
+
+public class RecentMistakesFirstSorter implements CardOrganizer {
+
+    @Override
+    public List<Flashcard> organize(List<Flashcard> cards) {
+        return cards;
+    }
 }
