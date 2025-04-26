@@ -3,10 +3,7 @@ package com.example;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class FlashcardApp {
 
@@ -44,7 +41,7 @@ public class FlashcardApp {
                     if (i + 1 < args.length) {
                         order = args[++i];
                         if (!order.equals("random") && !order.equals("worst-first") && !order.equals("recent-mistakes-first")) {
-                            System.out.println("Error: Invalid order type.");
+                            System.out.println("Error: Invalid order type: " + order);
                             return;
                         }
                     } else {
@@ -89,6 +86,7 @@ public class FlashcardApp {
                 card.setAnswer(temp);
             }
         }
+
         runQuiz(flashcards, repetitions, order);
     }
 
@@ -112,54 +110,57 @@ public class FlashcardApp {
 
     private static void runQuiz(List<Flashcard> flashcards, int repetitions, String order) {
         Scanner scanner = new Scanner(System.in);
-    
-        RecentMistakesFirstSorter sorter = new RecentMistakesFirstSorter();
+
+        RecentMistakesFirstSorter mistakesSorter = new RecentMistakesFirstSorter();
         WorstFirstSorter worstSorter = new WorstFirstSorter();
         boolean useRecentMistakes = order.equals("recent-mistakes-first");
         boolean useWorstFirst = order.equals("worst-first");
-    
+
         boolean allCorrect;
         do {
             allCorrect = true;
-    
-            List<Flashcard> quizCards;
+            List<Flashcard> quizCards = new ArrayList<>(flashcards);
+
             if (useRecentMistakes) {
-                quizCards = sorter.organize(flashcards);
+                quizCards = mistakesSorter.organize(flashcards);
             } else if (useWorstFirst) {
                 quizCards = worstSorter.organize(flashcards);
-            } else {
-                quizCards = new ArrayList<>(flashcards);
+            } else if (order.equals("random")) {
                 Collections.shuffle(quizCards);
             }
-    
+
             for (Flashcard card : quizCards) {
                 int correctCount = 0;
+                int attemptCount = 0;
+
                 while (correctCount < repetitions) {
                     System.out.println("Question: " + card.getQuestion());
                     System.out.print("Your answer: ");
                     String userAnswer = scanner.nextLine();
-    
+
+                    attemptCount++;
+
                     if (userAnswer.trim().equalsIgnoreCase(card.getAnswer().trim())) {
                         correctCount++;
                         System.out.println("Correct! (" + correctCount + "/" + repetitions + ")");
-                        sorter.clearMistakes();
+                        mistakesSorter.clearMistakes();
                     } else {
                         System.out.println("Wrong! Correct answer: " + card.getAnswer());
-                        card.incrementMistakes();
-                        sorter.addMistake(card);
-                        correctCount = 0;
+                        mistakesSorter.addMistake(card);
+                        worstSorter.addMistake(card);
+                        correctCount = 0; // Reset on wrong if needed
                         allCorrect = false;
                     }
                     System.out.println();
                 }
             }
-    
+
             if (useRecentMistakes && !allCorrect) {
                 System.out.println("Repeating mistakes first...");
             }
-    
+
         } while (useRecentMistakes && !allCorrect);
-    
+
         System.out.println("Quiz finished!");
     }
 

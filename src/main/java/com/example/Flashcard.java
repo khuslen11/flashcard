@@ -5,7 +5,6 @@ import java.util.Objects;
 public class Flashcard {
     private String question;
     private String answer;
-    private int mistakes = 0;
 
     public Flashcard(String question, String answer) {
         this.question = question;
@@ -28,25 +27,13 @@ public class Flashcard {
         this.answer = answer;
     }
 
-    public int getMistakes() {
-        return mistakes;
-    }
-    
-    public void incrementMistakes() {
-        mistakes++;
-    }
-    
-    public void resetMistakes() {
-        mistakes = 0;
-    }
-    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Flashcard)) return false;
-        Flashcard that = (Flashcard) o;
-        return Objects.equals(question, that.question) &&
-               Objects.equals(answer, that.answer);
+        Flashcard flashcard = (Flashcard) o;
+        return Objects.equals(question, flashcard.question) &&
+               Objects.equals(answer, flashcard.answer);
     }
 
     @Override

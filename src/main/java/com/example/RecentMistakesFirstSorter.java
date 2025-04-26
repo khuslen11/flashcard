@@ -1,16 +1,15 @@
 package com.example;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RecentMistakesFirstSorter implements CardOrganizer {
-
-    private List<Flashcard> mistakes = new ArrayList<>();
+    private Set<Flashcard> mistakes = new HashSet<>();
 
     public void addMistake(Flashcard card) {
-        if (!mistakes.contains(card)) {
-            mistakes.add(card);
-        }
+        mistakes.add(card);
     }
 
     public void clearMistakes() {
@@ -18,18 +17,18 @@ public class RecentMistakesFirstSorter implements CardOrganizer {
     }
 
     @Override
-    public List<Flashcard> organize(List<Flashcard> cards) {
-        List<Flashcard> ordered = new ArrayList<>();
-        for (Flashcard card : cards) {
+    public List<Flashcard> organize(List<Flashcard> flashcards) {
+        List<Flashcard> result = new ArrayList<>();
+        for (Flashcard card : flashcards) {
             if (mistakes.contains(card)) {
-                ordered.add(card);
+                result.add(card);
             }
         }
-        for (Flashcard card : cards) {
+        for (Flashcard card : flashcards) {
             if (!mistakes.contains(card)) {
-                ordered.add(card);
+                result.add(card);
             }
         }
-        return ordered;
+        return result;
     }
 }
